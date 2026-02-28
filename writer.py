@@ -9,6 +9,13 @@ from .pyvox.writer import VoxWriter
 
 image_tuples = {}
 
+# steppie-digital added to convert linear to sRGB
+def linear_to_srgb(c):
+    if c <= 0.0031308:
+        return 12.92 * c
+    else:
+        return 1.055 * (c ** (1.0 / 2.4)) - 0.055
+
 def TriangulateMesh( obj ):
 	bm = bmesh.new()
 	bm.from_mesh( obj.data )
@@ -224,7 +231,11 @@ def voxelize(obj, file_path, vox_detail=32, use_default_palette=False):
 						if color:
 							if len(color) == 4 and color[3] < 0.1:
 								continue
-							color = Color(int(color[0]*255), int(color[1]*255), int(color[2]*255), 255)
+							r = linear_to_srgb(color[0])
+							g = linear_to_srgb(color[1])
+							b = linear_to_srgb(color[2])
+
+							color = Color(int(r*255), int(g*255), int(b*255), 255)
 							threshold = max(7, min(12, len(palette) * 0.65))
 							palette, color_index = try_add_color_to_palette(color, palette, color_threshold=threshold)
 							#color_index = nearest_color_index(color, palette[1:])
